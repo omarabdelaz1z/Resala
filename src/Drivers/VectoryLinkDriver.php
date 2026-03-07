@@ -3,8 +3,7 @@
 namespace RobustTools\Resala\Drivers;
 
 use RobustTools\Resala\Abstracts\Driver;
-use RobustTools\Resala\Contracts\SMSDriverInterface;
-use RobustTools\Resala\Contracts\SMSDriverResponseInterface;
+use RobustTools\Resala\Contracts\{SMSDriverInterface, SMSDriverResponseInterface};
 use RobustTools\Resala\Response\VectoryLinkResponse;
 use RobustTools\Resala\Support\HTTP;
 
@@ -54,27 +53,38 @@ final class VectoryLinkDriver extends Driver implements SMSDriverInterface
 
     public function send(): SMSDriverResponseInterface
     {
-        $response = HTTP::post($this->endPoint, $this->headers(), $this->payload());
-
-        return new VectoryLinkResponse($response);
+        return new VectoryLinkResponse(HTTP::post($this->endPoint, $this->headers(), json_encode($this->payload())));
     }
 
-    protected function payload(): string
+    /**
+     * @return array<string, mixed>
+     */
+    protected function payload(): array
     {
-        return http_build_query([
-            "SMSText" => $this->message,
-            "SMSReceiver" => $this->recipients,
-            "SMSSender" => $this->senderName,
+        return [
+            'SMSText' => $this->message,
+            'SMSReceiver' => $this->recipients,
+            'SMSSender' => $this->senderName,
             'SMSLang' => $this->lang,
             'UserName' => $this->username,
-            'Password' => $this->password
-        ]);
+            'Password' => $this->password,
+            'SMSID' => $this->generateGuid(),
+        ];
+    }
+
+    private function generateGuid(): string
+    {
+        $data = random_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 
     protected function headers(): array
     {
         return [
-            'Content-Type' => 'application/x-www-form-urlencoded'
+            'Content-Type' => 'application/json',
         ];
     }
 }

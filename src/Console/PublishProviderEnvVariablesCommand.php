@@ -1,5 +1,4 @@
 <?php
-
 namespace RobustTools\Resala\Console;
 
 use Illuminate\Console\Command;

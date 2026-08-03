@@ -86,5 +86,9 @@ class PublishProviderEnvVariablesCommand extends Command
         if ($this->argument('driver') == "brandencode") {
             return File::get(__DIR__ . "/../../stubs/brandencode.env.stub");
         }
+
+        if ($this->argument('driver') == "gateway_sa") {
+            return File::get(__DIR__ . "/../../stubs/gateway_sa.env.stub");
+        }
     }
 }
